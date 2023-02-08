@@ -238,6 +238,8 @@
 #include "llvm/Transforms/Vectorize/LoopVectorize.h"
 #include "llvm/Transforms/Vectorize/SLPVectorizer.h"
 #include "llvm/Transforms/Vectorize/VectorCombine.h"
+// RTL2ILA
+#include "llvm/Transforms/Utils/RTL2ILA.h"
 
 using namespace llvm;
 

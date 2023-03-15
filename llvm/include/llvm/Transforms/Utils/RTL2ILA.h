@@ -21,6 +21,13 @@ struct BitStr {
   bool isConstVal() { return tri_str.find('x') == std::string::npos && tri_str.find('z') == std::string::npos; }
   int getConstVal() { 
     assert( isConstVal() );
+    assert( !tri_str.empty() );
+
+    /*if (tri_str.empty()) {
+      errs() << "ERROR: The bitstr is empty!\n";
+      exit(0);
+    }*/
+
     return std::stoi( std::string(tri_str.rbegin(), tri_str.rend()), 0, 2 );
   }
 
@@ -131,7 +138,7 @@ public:
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM);
 
 private:
-  BitwiseContainer* getBitwiseContainer(Value *, std::unordered_map<Value *, BitwiseContainer *> &);
+  BitwiseContainer* getBitwiseContainer(Value *);
 
   std::unordered_map<Value *, BitwiseContainer *> bitwise_inst_map;
   std::unordered_map<DependencyContainer, Value *, DependencyHash> cmp_to_0_map;

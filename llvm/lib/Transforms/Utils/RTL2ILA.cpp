@@ -29,7 +29,7 @@ PreservedAnalyses RTL2ILAPass::run(Function &F, FunctionAnalysisManager &AM) {
           Value *operand = inst->getOperand(0);
 
           // get the BitwiseContainer for operand
-          BitwiseContainer *operand_ct = getBitwiseContainer(operand, bitwise_inst_map);
+          BitwiseContainer *operand_ct = getBitwiseContainer(operand);
           if (operand_ct == nullptr)
             continue;
 
@@ -52,8 +52,8 @@ PreservedAnalyses RTL2ILAPass::run(Function &F, FunctionAnalysisManager &AM) {
           }
 
           // DEBUG: print
-          //errs() << inst->getName() << ": ";
-          //inst_ct->print();
+          /*errs() << inst->getName() << ": ";
+          inst_ct->print();*/
 
         }
       } else if (auto* inst = dyn_cast<BinaryOperator>(&I)) {
@@ -64,11 +64,11 @@ PreservedAnalyses RTL2ILAPass::run(Function &F, FunctionAnalysisManager &AM) {
           Value *rhs = inst->getOperand(1);
           
           // get the BitwiseContainer for lhs
-          BitwiseContainer *lhs_ct = getBitwiseContainer(lhs, bitwise_inst_map);
+          BitwiseContainer *lhs_ct = getBitwiseContainer(lhs);
           if (lhs_ct == nullptr)
             continue;
           // get the BitwiseContainer for rhs
-          BitwiseContainer *rhs_ct = getBitwiseContainer(rhs, bitwise_inst_map);
+          BitwiseContainer *rhs_ct = getBitwiseContainer(rhs);
           if (rhs_ct == nullptr)
             continue;
 
@@ -99,8 +99,8 @@ PreservedAnalyses RTL2ILAPass::run(Function &F, FunctionAnalysisManager &AM) {
           }
         
           // DEBUG: print
-          //errs() << inst->getName() << ": ";
-          //inst_ct->print();
+          /*errs() << inst->getName() << ": ";
+          inst_ct->print();*/
         }
       } else if (auto* inst = dyn_cast<ICmpInst>(&I)) {
         //errs() << "Instruction: " << I << "\n";
@@ -115,7 +115,7 @@ PreservedAnalyses RTL2ILAPass::run(Function &F, FunctionAnalysisManager &AM) {
           continue;
         
         Value *op1 = inst->getOperand(0);
-        BitwiseContainer *op1_ct = getBitwiseContainer(op1, bitwise_inst_map);
+        BitwiseContainer *op1_ct = getBitwiseContainer(op1);
 
         /*if (op1_ct != nullptr) {
           op1_ct->print();
@@ -149,7 +149,7 @@ PreservedAnalyses RTL2ILAPass::run(Function &F, FunctionAnalysisManager &AM) {
 }
 
 
-BitwiseContainer* RTL2ILAPass::getBitwiseContainer(Value *val, std::unordered_map<Value *, BitwiseContainer *> &bitwise_inst_map) {
+BitwiseContainer* RTL2ILAPass::getBitwiseContainer(Value *val) {
   BitwiseContainer *bc = nullptr;
   if (isa<Argument>(val)) {                                  // val is a function argument
     // create a new BitwiseContainer for the val
@@ -159,7 +159,14 @@ BitwiseContainer* RTL2ILAPass::getBitwiseContainer(Value *val, std::unordered_ma
   } else if (auto* val_const = dyn_cast<ConstantInt>(val)) { // val is a constant
     // create a new BitwiseContainer to hold the constant
     std::string conststr = std::bitset<BITSET_WIDTH>(val_const->getSExtValue()).to_string();
-    conststr.erase(0, BITSET_WIDTH - val_const->getBitWidth());
+    if (val_const->getBitWidth() <= BITSET_WIDTH)
+      conststr.erase(0, BITSET_WIDTH - val_const->getBitWidth());
+    else {
+      errs() << "WARNING: the bitwidth of "; val_const->print(errs()); errs() << " is larger than BITSET_WIDTH (" << BITSET_WIDTH << ")!\n";
+      std::string sextstr(val_const->getBitWidth() - BITSET_WIDTH, conststr[0]);
+      sextstr.append(conststr);
+      conststr = sextstr;
+    }
     bc = new BitwiseContainer(conststr);
   } else if (bitwise_inst_map.count(val)) {
     bc = bitwise_inst_map[val];

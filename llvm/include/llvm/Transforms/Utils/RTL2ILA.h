@@ -27,7 +27,7 @@ struct BitStr {
   BitStr intersect(const BitStr &, const BitStr &);
 
   bool isAllKnown() { return tri_str.find('x') == std::string::npos && tri_str.find('z') == std::string::npos; }
-  int getKnownVal()
+  unsigned long getKnownVal()
   {
     assert( isAllKnown() );
     assert( !tri_str.empty() );
@@ -37,10 +37,10 @@ struct BitStr {
       exit(0);
     }*/
 
-    if (tri_str.size() > 32)
-      errs() << "WARNING: the bitwidth of " << std::string(tri_str.rbegin(), tri_str.rend()) << " is larger than int (32)!\n";
+    if (tri_str.size() > 64)
+      errs() << "WARNING: the bitwidth of " << std::string(tri_str.rbegin(), tri_str.rend()) << " is larger than unsigned long (64)!\n";
 
-    return std::stoi( std::string(tri_str.rbegin(), tri_str.rend()), nullptr, 2 );
+    return std::stoul( std::string(tri_str.rbegin(), tri_str.rend()), nullptr, 2 );
   }
   bool isPartKnown() { return tri_str.find('0') != std::string::npos || tri_str.find('1') != std::string::npos; }
 
